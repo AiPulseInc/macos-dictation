@@ -46,13 +46,27 @@ cd /Users/mk/code-sandbox/dictation-macos-app
 swift run
 ```
 
+### Build standalone app bundle
+
+```bash
+cd /Users/mk/code-sandbox/dictation-macos-app
+zsh scripts/build_app_bundle.sh
+```
+
+### Launch standalone app bundle
+
+```bash
+open /Users/mk/code-sandbox/dictation-macos-app/dist/QuickDictateMac.app
+```
+
 ## Manual Acceptance Checklist
 
 - App window opens
 - Global hotkey `Control + B` starts recording
 - Red floating overlay appears while recording
-- Yellow floating overlay appears while transcribing
+- The same red overlay stays visible during transcription and changes text to `Transcribing`
 - Overlay disappears after paste/copy completes
 - Transcript reaches the target text field
 - `base`, `small`, and `medium` model selection works
 - `Improve Transcript` toggle changes output formatting behavior
+- Standalone `.app` launches the bundled backend without a terminal

@@ -38,4 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             NSApp.windows.first?.makeKeyAndOrderFront(nil)
         }
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        BackendServiceManager.shared.stopIfManaged()
+    }
 }

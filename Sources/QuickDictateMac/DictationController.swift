@@ -60,6 +60,7 @@ final class DictationController: ObservableObject {
     @Published var lastTriggerSource = "Manual"
     @Published var autoPasteEnabled = true
     @Published var lastModelUsed = "-"
+    @Published var backendStatus = "Backend not checked"
 
     let shortcutDisplay = "Control + B"
     let serviceURL = URL(string: "http://127.0.0.1:8765/transcribe")!
@@ -68,11 +69,24 @@ final class DictationController: ObservableObject {
     private let client = TranscriptionClient()
     private let textInsertionService = TextInsertionService()
     private let recordingOverlay = RecordingOverlayController()
+    private let backendManager = BackendServiceManager.shared
     private var hotKey: GlobalHotKey?
     private var didInstallHotKey = false
+    private var didStartup = false
     private var targetApplication: NSRunningApplication?
 
-    init() {}
+    init() {
+        Task { @MainActor [weak self] in
+            await self?.startup()
+        }
+    }
+
+    func startup() async {
+        guard !didStartup else { return }
+        didStartup = true
+        installHotKeyIfNeeded()
+        await ensureBackendRunning()
+    }
 
     func installHotKeyIfNeeded() {
         guard !didInstallHotKey else { return }
@@ -117,6 +131,7 @@ final class DictationController: ObservableObject {
         lastError = ""
 
         do {
+            await ensureBackendRunning()
             statusMessage = "Requesting microphone access..."
             targetApplication = NSWorkspace.shared.frontmostApplication
             try await recorder.startRecording()
@@ -184,6 +199,17 @@ final class DictationController: ObservableObject {
         lastTriggerSource = "UI button"
         Task {
             await toggleRecording()
+        }
+    }
+
+    private func ensureBackendRunning() async {
+        do {
+            backendStatus = "Starting local backend..."
+            try await backendManager.ensureRunning()
+            backendStatus = "Local backend ready"
+        } catch {
+            backendStatus = "Backend unavailable"
+            lastError = error.localizedDescription
         }
     }
 }

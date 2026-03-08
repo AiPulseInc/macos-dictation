@@ -8,10 +8,17 @@ This project has two runtime pieces:
 
 - `quickdictate-asr/`: local FastAPI transcription service using `faster-whisper`
 - `Sources/QuickDictateMac/`: native macOS SwiftUI app with global hotkey recording and auto-paste
+- `dist/QuickDictateMac.app`: double-clickable app bundle that embeds the backend and starts it automatically
 
 ## Fast Start
 
-### Start the backend
+### Preferred launch path
+
+```bash
+open /Users/mk/code-sandbox/dictation-macos-app/dist/QuickDictateMac.app
+```
+
+### Start the backend manually
 
 ```bash
 cd /Users/mk/code-sandbox/dictation-macos-app/quickdictate-asr
@@ -38,6 +45,8 @@ swift run
   FastAPI API, model selection, transcript refinement.
 - `/Users/mk/code-sandbox/dictation-macos-app/Sources/QuickDictateMac/DictationController.swift`
   Main app state and recording/transcription flow.
+- `/Users/mk/code-sandbox/dictation-macos-app/Sources/QuickDictateMac/BackendServiceManager.swift`
+  Starts and stops the bundled local ASR backend for the standalone `.app`.
 - `/Users/mk/code-sandbox/dictation-macos-app/Sources/QuickDictateMac/TextInsertionService.swift`
   Paste-back into the previously focused app.
 - `/Users/mk/code-sandbox/dictation-macos-app/Sources/QuickDictateMac/RecordingOverlayController.swift`
@@ -53,6 +62,8 @@ swift run
   It uses the selected Whisper model first, then runs a small local text cleanup pass in `cleanup_transcript()` inside `quickdictate-asr/app.py`.
 - Auto-paste requires Accessibility permission for `QuickDictateMac`.
 - Microphone capture requires Microphone permission for `QuickDictateMac`.
+- The standalone `.app` embeds `quickdictate-asr` and its `.venv` under `Contents/Resources/quickdictate-asr`.
+- The app icon is generated from `packaging/AppIcon.svg` into `packaging/AppIcon.icns` during bundle build.
 
 ## Verification
 
@@ -73,10 +84,17 @@ SWIFTPM_MODULECACHE_OVERRIDE=/Users/mk/code-sandbox/dictation-macos-app/.build/M
 swift build
 ```
 
+### Standalone app bundle
+
+```bash
+cd /Users/mk/code-sandbox/dictation-macos-app
+zsh scripts/build_app_bundle.sh
+```
+
 ## Current UX Behavior
 
 - Red circular floating overlay while recording
-- Yellow circular floating overlay while transcribing
+- The same red overlay remains during transcription but changes its label to `Transcribing`
 - Overlay disappears after paste/copy completes
 - Transcript is auto-pasted into the previously focused app when possible
 - Fallback is clipboard copy

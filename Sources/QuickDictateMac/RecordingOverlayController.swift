@@ -9,6 +9,7 @@ final class RecordingOverlayController {
     }
 
     private var panel: NSPanel?
+    private let overlaySize = NSSize(width: 132, height: 132)
 
     func show(_ state: State) {
         let panel = panel ?? makePanel()
@@ -26,10 +27,12 @@ final class RecordingOverlayController {
 
     private func makePanel() -> NSPanel {
         let hostingView = NSHostingView(rootView: RecordingOverlayView(state: .recording))
-        hostingView.frame = NSRect(x: 0, y: 0, width: 170, height: 170)
+        hostingView.frame = NSRect(origin: .zero, size: overlaySize)
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
 
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 170, height: 170),
+            contentRect: NSRect(origin: .zero, size: overlaySize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -61,44 +64,51 @@ final class RecordingOverlayController {
 
 private struct RecordingOverlayView: View {
     let state: RecordingOverlayController.State
+    private let panelDiameter: CGFloat = 132
+    private let haloDiameter: CGFloat = 124
+    private let mainDiameter: CGFloat = 108
+    private let iconSize: CGFloat = 36
 
     var body: some View {
         ZStack {
             Circle()
+                .fill(ringColor)
+                .frame(width: haloDiameter, height: haloDiameter)
+
+            Circle()
                 .fill(
-                    RadialGradient(
+                    LinearGradient(
                         colors: gradientColors,
-                        center: .center,
-                        startRadius: 10,
-                        endRadius: 92
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
                 )
-                .frame(width: 170, height: 170)
+                .frame(width: mainDiameter, height: mainDiameter)
                 .overlay {
                     Circle()
-                        .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                        .stroke(Color.white.opacity(0.25), lineWidth: 1.2)
                 }
-                .overlay {
-                    Circle()
-                        .stroke(ringColor, lineWidth: 18)
-                        .scaleEffect(1.07)
-                }
-                .shadow(color: shadowColor, radius: 24, y: 12)
+                .shadow(color: shadowColor, radius: 10, y: 5)
 
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 70, weight: .medium))
+                    .font(.system(size: iconSize, weight: .medium))
                     .foregroundStyle(.white)
+                    .padding(.top, 4)
 
                 Text(title)
-                    .font(.headline.weight(.semibold))
+                    .font(.system(size: 10.5, weight: .semibold))
                     .foregroundStyle(.white.opacity(0.95))
                 Text(subtitle)
-                    .font(.caption2.weight(.medium))
+                    .font(.system(size: 7.5, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .padding(.horizontal, 12)
                     .foregroundStyle(.white.opacity(0.85))
             }
         }
-        .frame(width: 170, height: 170)
+        .frame(width: panelDiameter, height: panelDiameter)
         .background(Color.clear)
     }
 
@@ -121,29 +131,14 @@ private struct RecordingOverlayView: View {
     }
 
     private var gradientColors: [Color] {
-        switch state {
-        case .recording:
-            return [Color.red.opacity(0.95), Color.red.opacity(0.74)]
-        case .transcribing:
-            return [Color.yellow.opacity(0.96), Color.orange.opacity(0.82)]
-        }
+        [Color.red.opacity(0.95), Color.red.opacity(0.74)]
     }
 
     private var shadowColor: Color {
-        switch state {
-        case .recording:
-            return .red.opacity(0.28)
-        case .transcribing:
-            return .yellow.opacity(0.28)
-        }
+        .red.opacity(0.28)
     }
 
     private var ringColor: Color {
-        switch state {
-        case .recording:
-            return .red.opacity(0.18)
-        case .transcribing:
-            return .yellow.opacity(0.18)
-        }
+        .red.opacity(0.16)
     }
 }

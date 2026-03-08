@@ -105,6 +105,12 @@ struct ContentView: View {
             }
 
             HStack {
+                Text(controller.backendStatus)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+
+            HStack {
                 Text("Hotkey: \(controller.hotKeyStatus)")
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -120,7 +126,7 @@ struct ContentView: View {
         .padding(20)
         .frame(width: 520)
         .task {
-            controller.installHotKeyIfNeeded()
+            await controller.startup()
         }
     }
 }
@@ -171,11 +177,14 @@ struct MenuBarContentView: View {
 
             Text(controller.hotKeyStatus)
                 .foregroundStyle(.secondary)
+
+            Text(controller.backendStatus)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .frame(width: 320)
         .task {
-            controller.installHotKeyIfNeeded()
+            await controller.startup()
         }
     }
 }

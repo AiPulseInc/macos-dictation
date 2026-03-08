@@ -1,0 +1,26 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="160" y1="120" x2="864" y2="904" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF5F5"/>
+      <stop offset="1" stop-color="#FFE3E3"/>
+    </linearGradient>
+    <linearGradient id="mic" x1="512" y1="182" x2="512" y2="842" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6B6B"/>
+      <stop offset="1" stop-color="#D90429"/>
+    </linearGradient>
+    <filter id="shadow" x="120" y="142" width="784" height="794" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="26" flood-color="#D90429" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect x="72" y="72" width="880" height="880" rx="220" fill="url(#bg)"/>
+
+  <g filter="url(#shadow)">
+    <circle cx="512" cy="512" r="286" fill="#FFD7DD"/>
+    <circle cx="512" cy="512" r="254" fill="url(#mic)"/>
+    <path d="M512 314C469.04 314 434 349.04 434 392V522C434 564.96 469.04 600 512 600C554.96 600 590 564.96 590 522V392C590 349.04 554.96 314 512 314Z" fill="white"/>
+    <path d="M378 500C378 574.006 437.994 634 512 634C586.006 634 646 574.006 646 500" stroke="white" stroke-width="38" stroke-linecap="round"/>
+    <path d="M512 634V730" stroke="white" stroke-width="38" stroke-linecap="round"/>
+    <path d="M448 730H576" stroke="white" stroke-width="38" stroke-linecap="round"/>
+  </g>
+</svg>

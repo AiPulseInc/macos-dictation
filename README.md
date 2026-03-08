@@ -11,7 +11,7 @@ Additional documentation:
 - [Testing](/Users/mk/code-sandbox/dictation-macos-app/docs/TESTING.md)
 - [Agent Hot Start](/Users/mk/code-sandbox/dictation-macos-app/AGENTS.md)
 
-## 1. Start the local ASR service
+## 1. Start the local ASR service manually
 
 ```bash
 cd /Users/mk/code-sandbox/dictation-macos-app/quickdictate-asr
@@ -22,8 +22,9 @@ uvicorn app:app --reload --host 127.0.0.1 --port 8765
 ```
 
 The first transcription request downloads the selected Whisper model.
+You only need this manual backend flow when developing or debugging the backend directly.
 
-## 2. Run the macOS app
+## 2. Run the macOS app from source
 
 In a second terminal:
 
@@ -32,10 +33,34 @@ cd /Users/mk/code-sandbox/dictation-macos-app
 swift run
 ```
 
+## 2a. Build a double-clickable app bundle
+
+If you want to launch the macOS app without `swift run`, build the local `.app` bundle:
+
+```bash
+cd /Users/mk/code-sandbox/dictation-macos-app
+zsh scripts/build_app_bundle.sh
+```
+
+This creates:
+
+```bash
+/Users/mk/code-sandbox/dictation-macos-app/dist/QuickDictateMac.app
+```
+
+You can then double-click that `.app` in Finder.
+
+The bundle builder also copies the local ASR backend and its virtualenv into the app resources, so the app can start the backend itself on launch.
+It also generates and embeds the app icon from [AppIcon.svg](/Users/mk/code-sandbox/dictation-macos-app/packaging/AppIcon.svg).
+
+For normal use, this `.app` bundle is now the preferred launch path.
+
 ## 3. Use dictation
 
 - Press `Control + B` to start recording
 - Press `Control + B` again to stop and transcribe
+- A floating red recording badge appears on screen while the mic is live
+- The same red badge stays visible during transcription and changes its text to `Transcribing`
 - The transcript is pasted into the previously active app automatically
 - If auto-paste cannot run, the transcript falls back to the clipboard
 - The app window shows a clear live recording state, the selected Whisper model, and transcript cleanup controls
@@ -43,6 +68,8 @@ swift run
 ## Notes
 
 - The macOS app expects the ASR service at `http://127.0.0.1:8765/transcribe`
+- The double-clickable `.app` bundle now tries to launch the bundled ASR backend automatically
+- The `.app` bundle includes a generated red microphone app icon
 - If microphone access is blocked, allow it in System Settings and relaunch the app
 - If auto-paste is blocked, allow Accessibility access for `QuickDictateMac` in System Settings and relaunch the app
 - You can switch between `base`, `small`, and `medium` Whisper models inside the app UI
