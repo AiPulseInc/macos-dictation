@@ -1,0 +1,10 @@
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+.cache/
+.build/
+.swiftpm/
+/quickdictate-asr/.venv/
+/quickdictate-asr/sample-en.aiff
+/quickdictate-asr/sample-en.wav
