@@ -2,6 +2,12 @@
 
 Local transcription service for Milestone 1.
 
+See also:
+
+- [Project README](/Users/mk/code-sandbox/dictation-macos-app/README.md)
+- [Architecture](/Users/mk/code-sandbox/dictation-macos-app/docs/ARCHITECTURE.md)
+- [Testing](/Users/mk/code-sandbox/dictation-macos-app/docs/TESTING.md)
+
 ## Setup
 
 ```bash
@@ -29,6 +35,12 @@ export WHISPER_DEVICE=cpu
 export WHISPER_COMPUTE_TYPE=int8
 ```
 
+Model tradeoff summary:
+
+- `base`: fastest, lowest quality
+- `small`: good default balance
+- `medium`: better local accuracy, slower on CPU
+
 ## Endpoints
 
 - `GET /health`
@@ -40,6 +52,8 @@ export WHISPER_COMPUTE_TYPE=int8
 - multipart field `language` with `auto`, `pl`, or `en`
 - multipart field `model` with `base`, `small`, or `medium`
 - multipart field `refine_text` with `true` or `false`
+
+`refine_text=true` keeps everything local and only applies a small cleanup pass after Whisper decoding. It does not invoke a second model.
 
 Example:
 

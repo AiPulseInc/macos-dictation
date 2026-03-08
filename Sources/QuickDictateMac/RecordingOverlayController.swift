@@ -64,18 +64,24 @@ private struct RecordingOverlayView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 34)
+            Circle()
                 .fill(
-                    LinearGradient(
+                    RadialGradient(
                         colors: gradientColors,
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        center: .center,
+                        startRadius: 10,
+                        endRadius: 92
                     )
                 )
                 .frame(width: 170, height: 170)
                 .overlay {
-                    RoundedRectangle(cornerRadius: 34)
+                    Circle()
                         .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                }
+                .overlay {
+                    Circle()
+                        .stroke(ringColor, lineWidth: 18)
+                        .scaleEffect(1.07)
                 }
                 .shadow(color: shadowColor, radius: 24, y: 12)
 
@@ -129,6 +135,15 @@ private struct RecordingOverlayView: View {
             return .red.opacity(0.28)
         case .transcribing:
             return .yellow.opacity(0.28)
+        }
+    }
+
+    private var ringColor: Color {
+        switch state {
+        case .recording:
+            return .red.opacity(0.18)
+        case .transcribing:
+            return .yellow.opacity(0.18)
         }
     }
 }
