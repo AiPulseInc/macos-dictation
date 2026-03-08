@@ -10,10 +10,15 @@ struct QuickDictateMacApp: App {
         MenuBarExtra {
             MenuBarContentView(controller: controller)
         } label: {
-            Label(
-                controller.isRecording ? "Recording" : "QuickDictate",
-                systemImage: controller.isRecording ? "mic.circle.fill" : "mic.circle"
-            )
+            if controller.isRecording {
+                Label("REC", systemImage: "record.circle.fill")
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(.red, .white)
+            } else if controller.isBusy {
+                Label("...", systemImage: "waveform")
+            } else {
+                Label("QD", systemImage: "mic.circle")
+            }
         }
 
         WindowGroup("QuickDictate") {

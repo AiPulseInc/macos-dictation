@@ -15,9 +15,11 @@ struct ContentView: View {
 
                 Spacer()
 
-                Image(systemName: controller.isRecording ? "waveform.circle.fill" : "mic.circle")
-                    .font(.system(size: 28))
-                    .foregroundStyle(controller.isRecording ? .red : .accentColor)
+                RecordingIndicatorView(isRecording: controller.isRecording, isBusy: controller.isBusy)
+            }
+
+            if controller.isRecording {
+                RecordingBannerView(shortcutDisplay: controller.shortcutDisplay)
             }
 
             HStack {
@@ -32,13 +34,32 @@ struct ContentView: View {
                 .frame(width: 220)
             }
 
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Model")
+                        .font(.headline)
+                    Picker("Model", selection: $controller.selectedModel) {
+                        ForEach(DictationController.Model.allCases) { model in
+                            Text(model.label).tag(model)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Spacer()
+
+                Text(controller.selectedModel.helperText)
+                    .foregroundStyle(.secondary)
+            }
+
             Toggle("Paste transcript into previous app automatically", isOn: $controller.autoPasteEnabled)
+            Toggle("Refine transcript after decoding", isOn: $controller.refineTranscriptEnabled)
 
             HStack(spacing: 12) {
                 Button(controller.isRecording ? "Stop Recording" : "Start Recording") {
                     controller.startFromUI()
                 }
-                .keyboardShortcut(.space, modifiers: [.control, .option])
+                .keyboardShortcut("b", modifiers: [.control])
                 .disabled(controller.isBusy)
 
                 Button("Copy Transcript") {
@@ -69,7 +90,17 @@ struct ContentView: View {
 
                 Spacer()
 
+                Text("Model: \(controller.lastModelUsed)")
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
                 Text("ASR: 127.0.0.1:8765")
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text(controller.refineTranscriptEnabled ? "Cleanup on" : "Cleanup off")
                     .foregroundStyle(.secondary)
             }
 
@@ -111,7 +142,14 @@ struct MenuBarContentView: View {
                 }
             }
 
+            Picker("Model", selection: $controller.selectedModel) {
+                ForEach(DictationController.Model.allCases) { model in
+                    Text(model.label).tag(model)
+                }
+            }
+
             Toggle("Auto paste", isOn: $controller.autoPasteEnabled)
+            Toggle("Refine transcript", isOn: $controller.refineTranscriptEnabled)
 
             Button(controller.isRecording ? "Stop Recording" : "Start Recording") {
                 controller.startFromUI()
@@ -139,5 +177,72 @@ struct MenuBarContentView: View {
         .task {
             controller.installHotKeyIfNeeded()
         }
+    }
+}
+
+private struct RecordingIndicatorView: View {
+    let isRecording: Bool
+    let isBusy: Bool
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Circle()
+                .fill(isRecording ? .red : (isBusy ? .orange : .secondary.opacity(0.35)))
+                .frame(width: 14, height: 14)
+                .overlay {
+                    if isRecording {
+                        Circle()
+                            .stroke(.red.opacity(0.35), lineWidth: 8)
+                            .scaleEffect(1.55)
+                    }
+                }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isRecording ? "Listening now" : (isBusy ? "Transcribing" : "Idle"))
+                    .font(.headline)
+                Text(isRecording ? "Microphone is live" : (isBusy ? "Processing your speech" : "Waiting for shortcut"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(isRecording ? Color.red.opacity(0.12) : Color.secondary.opacity(0.08))
+        )
+    }
+}
+
+private struct RecordingBannerView: View {
+    let shortcutDisplay: String
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "waveform")
+                .font(.title3.bold())
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Recording in progress")
+                    .font(.headline)
+                Text("Press \(shortcutDisplay) again to stop and transcribe")
+                    .font(.caption)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    LinearGradient(
+                        colors: [Color.red.opacity(0.18), Color.orange.opacity(0.10)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.red.opacity(0.3), lineWidth: 1)
+        )
     }
 }

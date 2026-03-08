@@ -38,13 +38,17 @@ export WHISPER_COMPUTE_TYPE=int8
 
 - multipart field `audio`
 - multipart field `language` with `auto`, `pl`, or `en`
+- multipart field `model` with `base`, `small`, or `medium`
+- multipart field `refine_text` with `true` or `false`
 
 Example:
 
 ```bash
 curl -X POST "http://127.0.0.1:8765/transcribe" \
   -F "audio=@sample.wav" \
-  -F "language=auto"
+  -F "language=auto" \
+  -F "model=small" \
+  -F "refine_text=true"
 ```
 
 ## Smoke Test

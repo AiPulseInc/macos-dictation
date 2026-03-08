@@ -13,12 +13,22 @@ PL_SAMPLE = Path(
 )
 
 
-def post_sample(client: TestClient, sample: Path, language: str) -> dict:
+def post_sample(
+    client: TestClient,
+    sample: Path,
+    language: str,
+    model: str = "small",
+    refine_text: bool = True,
+) -> dict:
     with sample.open("rb") as handle:
         response = client.post(
             "/transcribe",
             files={"audio": (sample.name, handle, "audio/mp4")},
-            data={"language": language},
+            data={
+                "language": language,
+                "model": model,
+                "refine_text": "true" if refine_text else "false",
+            },
         )
     response.raise_for_status()
     return response.json()
@@ -43,7 +53,7 @@ def main() -> None:
     invalid = client.post(
         "/transcribe",
         files={"audio": ("x.wav", b"123", "audio/wav")},
-        data={"language": "de"},
+        data={"language": "de", "model": "small", "refine_text": "true"},
     )
     print("invalid-language:", invalid.status_code, invalid.json())
 

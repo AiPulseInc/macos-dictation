@@ -23,16 +23,43 @@ final class DictationController: ObservableObject {
         }
     }
 
+    enum Model: String, CaseIterable, Identifiable {
+        case base
+        case small
+        case medium
+
+        var id: String { rawValue }
+
+        var label: String {
+            rawValue.capitalized
+        }
+
+        var helperText: String {
+            switch self {
+            case .base:
+                return "Fastest local model"
+            case .small:
+                return "Balanced quality"
+            case .medium:
+                return "Highest local quality"
+            }
+        }
+    }
+
     @Published var isRecording = false
     @Published var isBusy = false
     @Published var selectedLanguage: Language = .auto
+    @Published var selectedModel: Model = .small
+    @Published var refineTranscriptEnabled = true
     @Published var transcript = ""
+    @Published var rawTranscript = ""
     @Published var statusMessage = "Ready"
     @Published var lastDetectedLanguage = "-"
     @Published var lastError = ""
     @Published var hotKeyStatus = "Shortcut not installed yet"
     @Published var lastTriggerSource = "Manual"
     @Published var autoPasteEnabled = true
+    @Published var lastModelUsed = "-"
 
     let shortcutDisplay = "Control + B"
     let serviceURL = URL(string: "http://127.0.0.1:8765/transcribe")!
@@ -40,6 +67,7 @@ final class DictationController: ObservableObject {
     private let recorder = AudioRecorder()
     private let client = TranscriptionClient()
     private let textInsertionService = TextInsertionService()
+    private let recordingOverlay = RecordingOverlayController()
     private var hotKey: GlobalHotKey?
     private var didInstallHotKey = false
     private var targetApplication: NSRunningApplication?
@@ -93,9 +121,11 @@ final class DictationController: ObservableObject {
             targetApplication = NSWorkspace.shared.frontmostApplication
             try await recorder.startRecording()
             isRecording = true
+            recordingOverlay.show(.recording)
             statusMessage = "Recording... press \(shortcutDisplay) again to stop"
         } catch {
             isRecording = false
+            recordingOverlay.hide()
             lastError = error.localizedDescription
             statusMessage = "Microphone error"
         }
@@ -104,6 +134,7 @@ final class DictationController: ObservableObject {
     private func finishRecording() async {
         isRecording = false
         isBusy = true
+        recordingOverlay.show(.transcribing)
         statusMessage = "Transcribing..."
         lastError = ""
 
@@ -112,11 +143,15 @@ final class DictationController: ObservableObject {
             let response = try await client.transcribe(
                 fileURL: audioURL,
                 language: selectedLanguage.rawValue,
+                model: selectedModel.rawValue,
+                refineText: refineTranscriptEnabled,
                 endpoint: serviceURL
             )
 
             transcript = response.text
+            rawTranscript = response.rawText ?? response.text
             lastDetectedLanguage = response.detectedLanguage ?? "-"
+            lastModelUsed = response.modelUsed ?? selectedModel.rawValue
             if response.text.isEmpty {
                 copyTranscript()
                 statusMessage = "No speech detected"
@@ -141,6 +176,7 @@ final class DictationController: ObservableObject {
         }
 
         targetApplication = nil
+        recordingOverlay.hide()
         isBusy = false
     }
 

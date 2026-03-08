@@ -2,15 +2,21 @@ import Foundation
 
 struct TranscriptionResponse: Decodable {
     let text: String
+    let rawText: String?
     let detectedLanguage: String?
     let languageProbability: Double?
     let requestedLanguage: String
+    let modelUsed: String?
+    let refinedText: Bool?
 
     enum CodingKeys: String, CodingKey {
         case text
+        case rawText = "raw_text"
         case detectedLanguage = "detected_language"
         case languageProbability = "language_probability"
         case requestedLanguage = "requested_language"
+        case modelUsed = "model_used"
+        case refinedText = "refined_text"
     }
 }
 
@@ -29,12 +35,24 @@ enum TranscriptionClientError: LocalizedError {
 }
 
 struct TranscriptionClient {
-    func transcribe(fileURL: URL, language: String, endpoint: URL) async throws -> TranscriptionResponse {
+    func transcribe(
+        fileURL: URL,
+        language: String,
+        model: String,
+        refineText: Bool,
+        endpoint: URL
+    ) async throws -> TranscriptionResponse {
         let boundary = "Boundary-\(UUID().uuidString)"
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try buildRequestBody(fileURL: fileURL, language: language, boundary: boundary)
+        request.httpBody = try buildRequestBody(
+            fileURL: fileURL,
+            language: language,
+            model: model,
+            refineText: refineText,
+            boundary: boundary
+        )
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -49,7 +67,13 @@ struct TranscriptionClient {
         return try JSONDecoder().decode(TranscriptionResponse.self, from: data)
     }
 
-    private func buildRequestBody(fileURL: URL, language: String, boundary: String) throws -> Data {
+    private func buildRequestBody(
+        fileURL: URL,
+        language: String,
+        model: String,
+        refineText: Bool,
+        boundary: String
+    ) throws -> Data {
         var body = Data()
         let filename = fileURL.lastPathComponent
         let mimeType = mimeType(for: fileURL.pathExtension)
@@ -58,6 +82,14 @@ struct TranscriptionClient {
         append("--\(boundary)\r\n", to: &body)
         append("Content-Disposition: form-data; name=\"language\"\r\n\r\n", to: &body)
         append("\(language)\r\n", to: &body)
+
+        append("--\(boundary)\r\n", to: &body)
+        append("Content-Disposition: form-data; name=\"model\"\r\n\r\n", to: &body)
+        append("\(model)\r\n", to: &body)
+
+        append("--\(boundary)\r\n", to: &body)
+        append("Content-Disposition: form-data; name=\"refine_text\"\r\n\r\n", to: &body)
+        append(refineText ? "true\r\n" : "false\r\n", to: &body)
 
         append("--\(boundary)\r\n", to: &body)
         append(

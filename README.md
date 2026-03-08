@@ -32,11 +32,12 @@ swift run
 - Press `Control + B` again to stop and transcribe
 - The transcript is pasted into the previously active app automatically
 - If auto-paste cannot run, the transcript falls back to the clipboard
-- The app window also shows the last transcript and detected language
+- The app window shows a clear live recording state, the selected Whisper model, and transcript cleanup controls
 
 ## Notes
 
 - The macOS app expects the ASR service at `http://127.0.0.1:8765/transcribe`
 - If microphone access is blocked, allow it in System Settings and relaunch the app
 - If auto-paste is blocked, allow Accessibility access for `QuickDictateMac` in System Settings and relaunch the app
-- You can switch between `auto`, `en`, and `pl` inside the app UI
+- You can switch between `base`, `small`, and `medium` Whisper models inside the app UI
+- `Refine transcript` is a lightweight local cleanup pass for punctuation and obvious formatting issues, not a full context-aware rewrite
